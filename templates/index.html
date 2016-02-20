@@ -58,7 +58,7 @@
     {% endif %}
      class="pull-down"
      style="background: #fff; cursor: pointer; padding: 5px 10px;
-     border: 1px solid #ccc; width: 12em" >
+     border: 1px solid #ccc; width: 13em" >
   <script type="text/javascript">
   $(function() {
   $('input[name="daterange"]').daterangepicker(
@@ -76,7 +76,7 @@
     });
   </script>
 
-<br /><input type="submit" value="Choose" />
+<br><br><input type="submit" value="Set date range" />
 </form>
 
     <!--
@@ -85,19 +85,29 @@
     shown in each row (but the order is across then down; I would
     prefer down then across). 
     -->
+<h3>Calenders found</h3>
+<form action="/selected" method="post">
 {% if session.calendars is defined  %}
-  <div class="row">
+    <div class="row">
   {% for cal in session.calendars if cal.selected %}
           <div class="col-md-4">
-	   {{ cal.summary }}
+                  <input type="checkbox" name="calendar" value="{{cal.id}}">
+                      {{ cal.summary }}
           </div>
          {% if loop.index is divisibleby 3 %}
           </div> <div class="row">
          {% endif %}
   {% endfor %}
-  </div>
+    </div>
 {% endif %}
-    
-
-  </div>  <!-- container (for bootstrap) -->
-  </body> </html>
+    <br>
+    <div class="row">
+        <div class="col-md-4">
+            <input type="submit" value="Choose"/>
+        </div>
+    </div>
+</form>
+<h3>Busy Times</h3>
+</div>  <!-- container (for bootstrap) -->
+</body>
+</html>
