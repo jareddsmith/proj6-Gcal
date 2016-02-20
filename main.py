@@ -196,6 +196,18 @@ def setrange():
       flask.session['begin_date'], flask.session['end_date']))
     return flask.redirect(flask.url_for("choose"))
 
+@app.route('/selected', methods=['POST'])
+def fetchcal():
+    app.logger.debug("Fetching the calendar(s) selected")
+    cals = []
+    selected = request.form.getlist('calendar')
+    app.logger.debug(selected)
+    for cal in flask.session['calendars']:
+        if cal['id'] in selected:
+            cals.append(cal)
+    app.logger.debug(cals)
+    return flask.redirect("/index")
+
 ####
 #
 #   Initialize session variables 
@@ -316,6 +328,28 @@ def cal_sort_key( cal ):
        primary_key = "X"
     return (primary_key, selected_key, cal["summary"])
 
+def find_busy(cal_list):
+    busy = []
+    begin = flask.session['begin_date']
+    end = flask.session['end_date']
+    
+    #To split into days
+    end = next_day(end)
+    
+    credentials = valid_credentials()
+    gcal_service = get_gcal_service(credentials)
+    
+    #To go through each selected calendar and pull the busy times
+    for cal in cal_list:
+        events = gcal_service.events().list(
+                    calendarId = cal,
+                    singleEvents = True,
+                    timeMin = begin.format('YYYY-MM-DD HH:mm:ss ZZ'),
+                    timeMax = end.format('YYYY-MM-DD HH:mm:ss ZZ')
+                    ).execute()
+            `       app.logger.debug(events)
+    
+    return
 
 #################
 #
