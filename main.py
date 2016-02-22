@@ -49,7 +49,9 @@ def choose():
     ## We'll need authorization to list calendars 
     ## I wanted to put what follows into a function, but had
     ## to pull it back here because the redirect has to be a
-    ## 'return' 
+    ## 'return'
+    
+    global gcal_service
     app.logger.debug("Checking credentials for Google calendar access")
     credentials = valid_credentials()
     if not credentials:
@@ -191,13 +193,18 @@ def setrange():
     daterange_parts = daterange.split()
     flask.session['begin_date'] = interpret_date(daterange_parts[0])
     flask.session['end_date'] = interpret_date(daterange_parts[2])
-    app.logger.debug("Setrange parsed {} - {}  dates as {} - {}".format(
-      daterange_parts[0], daterange_parts[1], 
-      flask.session['begin_date'], flask.session['end_date']))
+    flask.session['begin_time'] = request.form.get('begin_time')
+    flask.session['end_time'] = request.form.get('end_time')
+    app.logger.debug("Setrange parsed {} - {}  dates as {} - {} times as {} - {}".format( daterange_parts[0], daterange_parts[1],
+                flask.session['begin_date'], flask.session['end_date'],
+                flask.session['begin_time'], flask.session['end_time']))
     return flask.redirect(flask.url_for("choose"))
 
 @app.route('/selected', methods=['POST'])
 def fetchcal():
+    """
+    A function that create a list of selected calendars.
+    """
     app.logger.debug("Fetching the calendar(s) selected")
     cals = []
     selected = request.form.getlist('calendar')
@@ -329,6 +336,9 @@ def cal_sort_key( cal ):
     return (primary_key, selected_key, cal["summary"])
 
 def find_busy(cal_list):
+    """
+    A function that goes through a list of calendars and pulls all busy times from them.
+    """
     busy = []
     begin = flask.session['begin_date']
     end = flask.session['end_date']
@@ -336,20 +346,45 @@ def find_busy(cal_list):
     #To split into days
     end = next_day(end)
     
-    credentials = valid_credentials()
-    gcal_service = get_gcal_service(credentials)
+    #Format to datetime
+    begin = begin.format('YYYY-MM-DD HH:mm:ss ZZ')
+    end = end.format('YYYY-MM-DD HH:mm:ss ZZ')
     
-    #To go through each selected calendar and pull the busy times
+    #To go through each selected calendar and pull the busy times using freebusy
     for cal in cal_list:
-        events = gcal_service.events().list(
-                    calendarId = cal,
-                    singleEvents = True,
-                    timeMin = begin.format('YYYY-MM-DD HH:mm:ss ZZ'),
-                    timeMax = end.format('YYYY-MM-DD HH:mm:ss ZZ')
-                    ).execute()
-            `       app.logger.debug(events)
+        _id = cal['id']
+        
+        #The query for each of the calenders selected
+        freebusy_query = {"timeMin": begin
+                            "timeMax": end
+                            "items": [{"id": _id}]}
     
-    return
+        result = gcal_service.freebusy().query(body=freebusy_query).execute()
+
+        #Gets the busy times from the result and adds them to an overall list
+        busy_time = result['calendars']['id']['busy']
+        busy.append(busy_time)
+    
+    return busy
+
+def find_overlap(ev_start, ev_end, next_start, next_end):
+    """
+    A boolean function that determines if there is any overlap.
+    """
+    #If the event is within the start and end times
+    if (ev_start < next_start and next_end < ev_end):
+        return True
+
+    #If the event starts but does not end within the start and end times
+    elif (ev_start < next_start and next_start < ev_end):
+        return True
+
+    #If the event ends but does not start within the start and end times
+    elif (ev_start < next_end and next_end < ev_end):
+        return True
+
+    #No overlap
+    return False
 
 #################
 #
