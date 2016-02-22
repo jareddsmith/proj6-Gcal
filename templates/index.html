@@ -50,6 +50,7 @@
   {% endif %}
 {% endwith %}
 
+<hr>
 <h2>Date range</h2>
   <form action="/setrange" method="post">
   <input type="text" name="daterange" size="12"
@@ -75,8 +76,17 @@
        );
     });
   </script>
+  
+<h2>Time Range</h2>
+<label>Begin time:
+<input type=text name="begin_time" placeholder="HH:mm">
+</label>
 
-<br><br><input type="submit" value="Set date range" />
+<label>End time:
+<input type=text name="end_time" placeholder="HH:mm">
+</label>
+
+<br><br><input type="submit" value="Set ranges" />
 </form>
 
     <!--
@@ -85,6 +95,7 @@
     shown in each row (but the order is across then down; I would
     prefer down then across). 
     -->
+<hr>
 <h3>Calenders found</h3>
 <form action="/selected" method="post">
 {% if session.calendars is defined  %}
@@ -107,6 +118,7 @@
         </div>
     </div>
 </form>
+<hr>
 <h3>Busy Times</h3>
 </div>  <!-- container (for bootstrap) -->
 </body>
