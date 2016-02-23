@@ -16,6 +16,6 @@ Status: Fully operational
 
 http://ix.cs.uoregon.edu/~jsmith/cis322/htbin/proj6-Gcal
 
-http://ix.cs.uoregon.edu (5001-8000)
+http://ix.cs.uoregon.edu: (5001-8000)
 
 The port is chosen randomly upon each execution.
